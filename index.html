@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>India Startup Grants Knowledge Base</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+  :root {
+    --bg-primary: #1e1e2e;
+    --bg-secondary: #181825;
+    --bg-card: #252540;
+    --bg-card-hover: #2e2e4a;
+    --text-primary: #cdd6f4;
+    --text-secondary: #a6adc8;
+    --text-muted: #6c7086;
+    --accent-blue: #89b4fa;
+    --accent-green: #a6e3a1;
+    --accent-orange: #fab387;
+    --accent-purple: #cba6f7;
+    --accent-yellow: #f9e2af;
+    --accent-cyan: #94e2d5;
+    --accent-pink: #f5c2e7;
+    --accent-red: #f38ba8;
+    --border: #45475a;
+    --shadow: rgba(0,0,0,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* Layout */
+  .app { display: flex; height: 100vh; }
+
+  .sidebar {
+    width: 360px;
+    min-width: 360px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 10;
+  }
+
+  .sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .sidebar-header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent-purple);
+    margin-bottom: 4px;
+  }
+
+  .sidebar-header .subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .search-box {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .search-box input {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-box input:focus { border-color: var(--accent-purple); }
+  .search-box input::placeholder { color: var(--text-muted); }
+
+  .filters {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .filter-btn:hover { border-color: var(--text-secondary); }
+  .filter-btn.active { border-color: var(--accent-purple); color: var(--accent-purple); background: rgba(203,166,247,0.1); }
+
+  .filter-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  .grants-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .grants-list::-webkit-scrollbar { width: 6px; }
+  .grants-list::-webkit-scrollbar-track { background: transparent; }
+  .grants-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .grant-item {
+    padding: 12px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-bottom: 2px;
+  }
+
+  .grant-item:hover { background: var(--bg-card); }
+  .grant-item.selected { background: var(--bg-card-hover); border-left: 3px solid var(--accent-purple); }
+
+  .grant-item .grant-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .grant-item .grant-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .grant-item .grant-amount {
+    color: var(--accent-green);
+    font-weight: 500;
+  }
+
+  .category-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .stat-bar {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* Main area */
+  .main { flex: 1; position: relative; overflow: hidden; }
+
+  #graph { width: 100%; height: 100%; }
+
+  .graph-tooltip {
+    position: absolute;
+    padding: 8px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 100;
+    max-width: 240px;
+  }
+
+  .graph-tooltip .tt-name { font-weight: 600; color: var(--text-primary); }
+  .graph-tooltip .tt-meta { color: var(--text-muted); margin-top: 2px; font-size: 11px; }
+
+  /* Detail panel */
+  .detail-panel {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 420px;
+    height: 100%;
+    background: var(--bg-secondary);
+    border-left: 1px solid var(--border);
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    overflow-y: auto;
+    z-index: 20;
+    padding: 24px;
+  }
+
+  .detail-panel.open { transform: translateX(0); }
+
+  .detail-panel::-webkit-scrollbar { width: 6px; }
+  .detail-panel::-webkit-scrollbar-track { background: transparent; }
+  .detail-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .detail-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+  }
+
+  .detail-close:hover { color: var(--text-primary); }
+
+  .detail-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    padding-right: 30px;
+  }
+
+  .detail-funder {
+    font-size: 13px;
+    color: var(--accent-purple);
+    margin-bottom: 16px;
+  }
+
+  .detail-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .detail-tag {
+    padding: 3px 8px;
+    font-size: 10px;
+    border-radius: 10px;
+    background: rgba(203,166,247,0.12);
+    color: var(--accent-purple);
+    border: 1px solid rgba(203,166,247,0.2);
+  }
+
+  .detail-section {
+    margin-bottom: 20px;
+  }
+
+  .detail-section h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .detail-field {
+    background: var(--bg-primary);
+    padding: 10px 12px;
+    border-radius: 6px;
+  }
+
+  .detail-field .field-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+
+  .detail-field .field-value {
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+
+  .detail-field .field-value.highlight { color: var(--accent-green); font-weight: 600; }
+
+  .detail-field.full { grid-column: 1 / -1; }
+
+  .detail-description {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  .detail-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    background: var(--accent-purple);
+    color: var(--bg-primary);
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: opacity 0.2s;
+    margin-top: 8px;
+  }
+
+  .detail-link:hover { opacity: 0.85; }
+
+  .related-grants {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .related-grant-link {
+    padding: 8px 12px;
+    background: var(--bg-primary);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--accent-blue);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .related-grant-link:hover { background: var(--bg-card); }
+
+  /* Graph legend */
+  .graph-legend {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 11px;
+    z-index: 5;
+  }
+
+  .graph-legend h4 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    color: var(--text-secondary);
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* View toggle */
+  .view-toggle {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    gap: 4px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+    z-index: 5;
+  }
+
+  .view-btn {
+    padding: 6px 14px;
+    font-size: 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .view-btn.active {
+    background: var(--accent-purple);
+    color: var(--bg-primary);
+  }
+
+  /* Count badge */
+  .count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--accent-purple);
+    color: var(--bg-primary);
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 4px;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .sidebar { width: 280px; min-width: 280px; }
+    .detail-panel { width: 340px; }
+  }
+
+  @media (max-width: 600px) {
+    .app { flex-direction: column; }
+    .sidebar { width: 100%; min-width: 100%; height: 45vh; }
+    .main { height: 55vh; }
+    .detail-panel { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>India Startup Grants</h1>
+      <div class="subtitle">38+ active grants &middot; Interlinked knowledge base &middot; April 2026</div>
+    </div>
+    <div class="search-box">
+      <input type="text" id="search" placeholder="Search grants, funders, sectors..." autocomplete="off">
+    </div>
+    <div class="filters">
+      <div class="filter-label">Category</div>
+      <div class="filter-row" id="category-filters"></div>
+      <div class="filter-label">Stage</div>
+      <div class="filter-row" id="stage-filters"></div>
+      <div class="filter-label">Sector</div>
+      <div class="filter-row" id="sector-filters"></div>
+    </div>
+    <div class="grants-list" id="grants-list"></div>
+    <div class="stat-bar">
+      <span id="result-count">38 grants</span>
+      <span>Open source &middot; GitHub</span>
+    </div>
+  </div>
+  <div class="main">
+    <div class="view-toggle">
+      <button class="view-btn active" data-view="graph">Graph</button>
+      <button class="view-btn" data-view="list">Cards</button>
+    </div>
+    <svg id="graph"></svg>
+    <div class="graph-tooltip" id="tooltip"></div>
+    <div class="graph-legend">
+      <h4>Legend</h4>
+      <div class="legend-item"><div class="legend-dot" style="background:#89b4fa"></div> Central Govt</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fab387"></div> State Govt</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#cba6f7"></div> International</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f9e2af"></div> Private / Corporate</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#94e2d5"></div> Cloud Credits</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#6c7086"></div> Entity / Funder</div>
+    </div>
+    <div class="detail-panel" id="detail-panel">
+      <button class="detail-close" id="detail-close">&times;</button>
+      <div id="detail-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== GRANT DATA ==========
+const GRANTS = [
+  // CENTRAL GOVT
+  { id: "sisfs", name: "Startup India Seed Fund Scheme (SISFS)", funder: "DPIIT", category: "central-govt", sectors: ["general","tech","climate","healthcare","agritech"], stage: ["pre-seed","seed"], grantType: "Hybrid (Grant + Debt)", amountMin: "₹20L grant", amountMax: "₹70 Lakh", equity: false, status: "active", url: "https://seedfund.startupindia.gov.in/", description: "DPIIT's flagship seed-stage financing with ₹945 Crore outlay. Up to ₹20L as non-refundable grant + ₹50L as debt, disbursed through approved incubators. 1,635 women-led startups funded as of Oct 2025.", tags: ["non-dilutive","DPIIT","startup-india"], related: ["ffs","cgss","genesis","prayas","karnataka-elevate"] },
+  { id: "ffs", name: "Fund of Funds for Startups (FFS)", funder: "DPIIT / SIDBI", category: "central-govt", sectors: ["general"], stage: ["seed","early","growth"], grantType: "Equity (via AIFs)", amountMin: "Varies", amountMax: "Via SEBI AIFs", equity: true, status: "active", url: "https://sidbivcf.in/", description: "Catalyzes venture capital into Indian startups. SIDBI provides capital to SEBI-registered AIFs which invest in startups. FFS 2.0 approved by Cabinet. ₹2,838.9 crore invested in 154 women-led startups.", tags: ["SIDBI","AIF","venture-capital"], related: ["sisfs","cgss","mahafund"] },
+  { id: "cgss", name: "Credit Guarantee Scheme for Startups (CGSS)", funder: "DPIIT", category: "central-govt", sectors: ["general"], stage: ["seed","early","growth"], grantType: "Credit Guarantee", amountMin: "Varies", amountMax: "Collateral-free", equity: false, status: "active", url: "https://www.startupindia.gov.in/", description: "Provides credit guarantees to banks lending to DPIIT-recognized startups, enabling collateral-free loans. One of three flagship Startup India schemes.", tags: ["non-dilutive","credit","debt"], related: ["sisfs","ffs","aspire"] },
+  { id: "genesis", name: "MeitY GENESIS", funder: "MeitY", category: "central-govt", sectors: ["tech","ai","deeptech","electronics"], stage: ["ideation","pre-seed"], grantType: "Grant", amountMin: "Up to ₹10L", amountMax: "₹10 Lakh", equity: false, status: "active", url: "https://www.meity.gov.in/", description: "Gen-Next Support for Innovative Startups. Up to ₹10 lakh non-refundable grants for early-stage tech startups including AI ventures, with mentorship from govt-recognized incubators.", tags: ["MeitY","non-dilutive","equity-free"], related: ["meity-ai","prayas","sisfs","indiaai-compute"] },
+  { id: "meity-ai", name: "MeitY AI Innovation Programme", funder: "MeitY", category: "central-govt", sectors: ["ai","deeptech"], stage: ["seed","early"], grantType: "Grant", amountMin: "Varies", amountMax: "₹10 Crore", equity: false, status: "active", url: "https://www.meity.gov.in/", description: "Grants up to ₹10 crore with access to national AI infrastructure including computing resources and datasets. Targets AI projects addressing Indian societal challenges.", tags: ["MeitY","ai","large-grant"], related: ["indiaai-financing","indiaai-compute","genesis","google-ai-first"] },
+  { id: "indiaai-financing", name: "IndiaAI Startup Financing", funder: "MeitY / IndiaAI Mission", category: "central-govt", sectors: ["ai","deeptech"], stage: ["seed","early"], grantType: "Grant", amountMin: "Varies", amountMax: "₹1,942.5 Cr allocated", equity: false, status: "active", url: "https://indiaai.gov.in/hub/indiaai-startup-financing", description: "Startup Financing pillar of IndiaAI Mission with ₹1,942.5 crore allocation. Includes Global Acceleration Programme with Station F and HEC Paris. 2026-27 Budget: ₹10,372 crore for broader mission.", tags: ["IndiaAI","ai","large-allocation"], related: ["indiaai-compute","meity-ai","indiaai-stationf","google-ai-first"] },
+  { id: "indiaai-compute", name: "IndiaAI Compute Credits", funder: "MeitY / IndiaAI", category: "central-govt", sectors: ["ai","deeptech"], stage: ["ideation","pre-seed","seed","early"], grantType: "Compute Credits", amountMin: "₹65/hr GPU", amountMax: "100% subsidy for foundational models", equity: false, status: "active", url: "https://indiaai.gov.in/hub/indiaai-compute-capacity", description: "38,000+ GPUs (20K more planned) at ₹65/hour — among cheapest globally. NVIDIA H100 SXMs available. 100% compute subsidy for foundational model builders (Sarvam got ₹98.68Cr for 4,096 H100s).", tags: ["GPU","NVIDIA","compute","ai"], related: ["indiaai-financing","meity-ai","aws-activate","gcp-startups","nvidia-inception"] },
+  { id: "prayas", name: "NIDHI PRAYAS", funder: "DST", category: "central-govt", sectors: ["general","tech","deeptech"], stage: ["ideation"], grantType: "Grant", amountMin: "Up to ₹10L", amountMax: "₹10 Lakh", equity: false, status: "active", url: "https://nidhi-prayas.org/", description: "DST's pre-incubation initiative for translating ideas into prototypes. Up to ₹10 lakh non-refundable. Managed by SINE, IIT Bombay. Multiple PRAYAS Centres across India.", tags: ["DST","NIDHI","prototype","ideation"], related: ["genesis","sisfs","aim","karnataka-elevate"] },
+  { id: "birac-big", name: "BIRAC BIG (Biotechnology Ignition Grant)", funder: "BIRAC / DBT", category: "central-govt", sectors: ["biotech","healthcare","agritech"], stage: ["ideation","pre-seed"], grantType: "Grant", amountMin: "Up to ₹50L", amountMax: "₹50 Lakh", equity: false, status: "active", url: "https://www.birac.nic.in/", description: "Up to ₹50 lakh for early-stage biotech startups and entrepreneurs with promising ideas. 18-month typical duration. Department of Biotechnology funded.", tags: ["BIRAC","biotech","healthcare"], related: ["birac-rdi","birac-pcp","birac-bioai","villgro-impact"] },
+  { id: "birac-rdi", name: "BIRAC RDI Fund", funder: "BIRAC / DBT", category: "central-govt", sectors: ["biotech","healthcare","deeptech","manufacturing"], stage: ["seed","early","growth"], grantType: "Grant", amountMin: "₹5 Crore", amountMax: "₹200 Crore", equity: false, status: "active", url: "https://www.birac.nic.in/", description: "₹5 Crore to ₹200 Crore for biotech, healthcare, deep tech, indigenous manufacturing, and bioengineering. One of the largest non-dilutive grants in India.", tags: ["BIRAC","large-grant","deeptech"], related: ["birac-big","birac-pcp","meity-ai"] },
+  { id: "birac-pcp", name: "BIRAC Product Commercialization Program", funder: "BIRAC / DBT", category: "central-govt", sectors: ["biotech","healthcare"], stage: ["early","growth"], grantType: "Grant", amountMin: "Varies", amountMax: "Up to 24 months support", equity: false, status: "active", url: "https://www.birac.nic.in/", description: "Supports scaling validated biotech technologies to commercial readiness. Covers production scale-up, pilot manufacturing, validation studies, and regulatory preparation for up to 24 months.", tags: ["BIRAC","commercialization","scale-up"], related: ["birac-big","birac-rdi","birac-bioai"] },
+  { id: "birac-bioai", name: "DBT-BIRAC BioAI Call", funder: "DBT / BIRAC", category: "central-govt", sectors: ["ai","biotech","biomanufacturing"], stage: ["seed","early"], grantType: "Grant", amountMin: "Varies", amountMax: "Varies", equity: false, status: "active", url: "https://www.birac.nic.in/", description: "Joint call for Bio-AI for High-Performance Biomanufacturing, establishing hubs under BioE3 Policy. At the intersection of AI and biotechnology.", tags: ["BIRAC","ai","biotech","BioE3"], related: ["birac-big","birac-rdi","meity-ai","indiaai-compute"] },
+  { id: "aim", name: "Atal Innovation Mission (AIC Grants)", funder: "NITI Aayog", category: "central-govt", sectors: ["general","tech","deeptech"], stage: ["ideation","pre-seed","seed"], grantType: "Grant", amountMin: "₹2.5 Cr (ACIC)", amountMax: "₹10 Crore (AIC)", equity: false, status: "active", url: "https://aim.gov.in/", description: "72 Atal Incubation Centres with up to ₹10 crore each over 5 years. 3,500+ startups incubated, 32,000+ jobs created. ACICs get up to ₹2.5 crore with matching funding.", tags: ["NITI-Aayog","incubation"], related: ["prayas","genesis","sisfs"] },
+  { id: "aspire", name: "ASPIRE Scheme (MSME)", funder: "Ministry of MSME / SIDBI", category: "central-govt", sectors: ["agritech","rural","manufacturing"], stage: ["pre-seed","seed","early"], grantType: "Grant", amountMin: "₹50L (PPP)", amountMax: "₹1 Crore", equity: false, status: "active", url: "https://www.sidbivcf.in/en/funds/aspire-fund-af", description: "₹310 crore corpus for rural industries and agro-industry entrepreneurship. 100% govt grant up to ₹1 Crore, or 50% in PPP mode up to ₹50 Lakh.", tags: ["MSME","SIDBI","rural","agritech"], related: ["nabard-green","icar","sisfs"] },
+  { id: "nabard-green", name: "NABARD Green Impact Fund", funder: "NABARD", category: "central-govt", sectors: ["climate","cleantech","agritech"], stage: ["seed","early","growth"], grantType: "Fund", amountMin: "Varies", amountMax: "₹1,000 Cr corpus", equity: false, status: "active", url: "https://www.nabard.org/", description: "Launched January 2026 with ₹1,000 crore corpus. Uses interest income to lower borrowing costs for climate adaptation — crop diversification, water-efficient farming, green tech.", tags: ["NABARD","climate","green"], related: ["nabard-carbon","hydrogen","villgro-climate","climate-challenge"] },
+  { id: "nabard-carbon", name: "NABARD Carbon Fund", funder: "NABARD", category: "central-govt", sectors: ["climate","carbon","cleantech"], stage: ["seed","early"], grantType: "Fund", amountMin: "Varies", amountMax: "₹300 Cr corpus", equity: false, status: "active", url: "https://www.nabard.org/", description: "Launched January 2026 alongside Green Impact Fund. ₹300 crore for carbon developers and startups working on emissions reduction and carbon capture.", tags: ["NABARD","carbon","climate"], related: ["nabard-green","hydrogen","villgro-climate"] },
+  { id: "hydrogen", name: "National Green Hydrogen Mission", funder: "MNRE", category: "central-govt", sectors: ["climate","cleantech","energy","hydrogen"], stage: ["early","growth"], grantType: "Incentives", amountMin: "Varies", amountMax: "450K TPA incentives", equity: false, status: "active", url: "https://mnre.gov.in/", description: "Incentives for 450,000 tonnes/annum green hydrogen production. Removed import duty on lithium-ion cells for EV and BESS manufacturers.", tags: ["hydrogen","green-energy","MNRE"], related: ["nabard-green","nabard-carbon","pm-edrive","villgro-climate"] },
+  { id: "pm-edrive", name: "PM E-DRIVE Scheme", funder: "Government of India", category: "central-govt", sectors: ["climate","EV","transport","cleantech"], stage: ["early","growth"], grantType: "Grant", amountMin: "Varies", amountMax: "₹4,391 Cr outlay", equity: false, status: "active", url: "https://www.india.gov.in/", description: "₹4,391 crore outlay supporting EV adoption. 14,028 electric buses supported. For EV manufacturers, charging infra, and mobility tech startups.", tags: ["EV","transport","climate"], related: ["hydrogen","nabard-green","eu-india"] },
+  { id: "icar", name: "ICAR Agri-Business Incubators", funder: "ICAR", category: "central-govt", sectors: ["agritech","food-tech","rural"], stage: ["ideation","pre-seed","seed"], grantType: "Grant", amountMin: "Varies", amountMax: "Varies", equity: false, status: "active", url: "https://icar.org.in/", description: "50 Agri-Business Incubators across ICAR institutes. 818 startups supported through National Agriculture Innovation Fund (NAIF). Notable: a-IDEA at NAARM with NABARD.", tags: ["ICAR","agritech","rural"], related: ["aspire","nabard-green","wb-agri","villgro-impact"] },
+
+  // STATE GOVT
+  { id: "karnataka-elevate", name: "Karnataka Elevate Programme", funder: "Govt of Karnataka", category: "state-govt", sectors: ["general","tech","deeptech"], stage: ["pre-seed","seed"], grantType: "Grant", amountMin: "Varies", amountMax: "₹50 Lakh", equity: false, status: "active", url: "https://eitbt.karnataka.gov.in/startup/", description: "India's most robust state grant mechanism — funded 1,000+ startups with zero equity. Part of Karnataka Startup Policy 2025-30.", tags: ["Karnataka","equity-free"], related: ["karnataka-deeptech","sisfs","tanseed","mahafund"] },
+  { id: "karnataka-deeptech", name: "Karnataka Deep-Tech Elevate", funder: "Govt of Karnataka", category: "state-govt", sectors: ["ai","deeptech","semiconductors","quantum","robotics"], stage: ["pre-seed","seed"], grantType: "Grant", amountMin: "₹50 Lakh", amountMax: "₹1 Crore", equity: false, status: "active", url: "https://eitbt.karnataka.gov.in/startup/", description: "Commenced Jan 1, 2026. 40 startups per cohort get ₹50L–₹1Cr in AI, semiconductors, quantum, robotics, advanced materials. No equity.", tags: ["Karnataka","deeptech","ai","quantum"], related: ["karnataka-elevate","meity-ai","indiaai-compute","deepscale"] },
+  { id: "tanseed", name: "Tamil Nadu TANSEED 6.0", funder: "Govt of Tamil Nadu / StartupTN", category: "state-govt", sectors: ["general","climate","sustainability"], stage: ["pre-seed","seed"], grantType: "Grant", amountMin: "₹10 Lakh", amountMax: "₹10 Lakh", equity: false, status: "active", url: "https://startuptn.in/", description: "6th edition of TN's seed grant. ₹10 Lakh disbursed in milestone-based tranches. New 'Green Track' for climate-tech and sustainability.", tags: ["Tamil-Nadu","green-track"], related: ["tn-itnt","karnataka-elevate","sisfs","villgro-climate"] },
+  { id: "tn-itnt", name: "Tamil Nadu iTNT Hub", funder: "Govt of Tamil Nadu", category: "state-govt", sectors: ["deeptech","ai","iot"], stage: ["pre-seed","seed"], grantType: "Grant", amountMin: "Varies", amountMax: "₹50 Lakh", equity: false, status: "active", url: "https://startuptn.in/", description: "Exclusively Deep Tech, AI, and IoT. Up to ₹50 Lakh for R&D-heavy startups.", tags: ["Tamil-Nadu","deeptech","ai","iot"], related: ["tanseed","karnataka-deeptech","meity-ai"] },
+  { id: "maha-workorders", name: "Maharashtra Startup Week Work Orders", funder: "Govt of Maharashtra", category: "state-govt", sectors: ["general","govtech"], stage: ["seed","early"], grantType: "Work Order", amountMin: "Up to ₹15L", amountMax: "₹15 Lakh", equity: false, status: "active", url: "https://startup.maharashtra.gov.in/", description: "Winners get govt work orders up to ₹15L to pilot with state departments. IPR subsidy: ₹2L domestic / ₹10L international patents. Targeting 50,000 startups by 2030.", tags: ["Maharashtra","govtech","pilot"], related: ["mahafund","karnataka-elevate"] },
+  { id: "mahafund", name: "Maharashtra MahaFund", funder: "Govt of Maharashtra", category: "state-govt", sectors: ["general"], stage: ["seed","early","growth"], grantType: "Fund of Funds", amountMin: "Varies", amountMax: "₹500 Cr corpus", equity: true, status: "active", url: "https://startup.maharashtra.gov.in/", description: "₹500 crore fund investing through AIFs into Maharashtra startups. Focus: Mumbai (Fintech/Media) and Pune (Auto/Engineering).", tags: ["Maharashtra","fund-of-funds"], related: ["maha-workorders","ffs","karnataka-elevate"] },
+  { id: "ksum", name: "Kerala Startup Mission (KSUM) Grants", funder: "Govt of Kerala / KSUM", category: "state-govt", sectors: ["tech","healthcare","education"], stage: ["ideation","pre-seed","seed"], grantType: "Grant", amountMin: "Varies", amountMax: "Varies", equity: false, status: "active", url: "https://startupmission.kerala.gov.in/", description: "Incubation centres, grants, and international networking. Hosts NIDHI PRAYAS centres. Prioritizes women-led ventures and deep-tech innovation.", tags: ["Kerala","KSUM","women-led"], related: ["prayas","tanseed","karnataka-elevate"] },
+  { id: "thub", name: "Telangana T-Hub Programs", funder: "Govt of Telangana / T-Hub", category: "state-govt", sectors: ["tech","deeptech","ai"], stage: ["pre-seed","seed","early"], grantType: "Grant", amountMin: "Varies", amountMax: "Varies", equity: false, status: "active", url: "https://t-hub.co/", description: "One of India's largest technology incubators. Multiple acceleration and incubation programs. Prioritizes women-led ventures and deep-tech.", tags: ["Telangana","T-Hub","women-led"], related: ["karnataka-elevate","meity-ai","sisfs"] },
+
+  // INTERNATIONAL
+  { id: "eic", name: "EU EIC Accelerator 2026", funder: "European Innovation Council", category: "international", sectors: ["deeptech","ai","climate","biotech"], stage: ["seed","early"], grantType: "Hybrid", amountMin: "Up to €2.5M grant", amountMax: "€2.5M + €15M equity", equity: "optional", status: "active", url: "https://eic.ec.europa.eu/eic-funding-opportunities/eic-accelerator_en", description: "€634M total 2026 budget. Up to €2.5M non-dilutive grant + optional €15M equity. 6 cut-offs/year. Indian founders eligible if they incorporate in EU. TRL 6-8 toward market entry.", tags: ["EU","EIC","large-grant"], related: ["eu-india","indiaai-stationf","birac-rdi","meity-ai"] },
+  { id: "usaid-div", name: "USAID Development Innovation Ventures", funder: "USAID", category: "international", sectors: ["general","agritech","healthcare","climate","education"], stage: ["ideation","seed","early"], grantType: "Tiered Grant", amountMin: "$25K (Stage 1)", amountMax: "$15M (Stage 3)", equity: false, status: "active", url: "https://www.usaid.gov/div", description: "Tiered grant funding across 46 countries. $106M disbursed to 190+ innovations. Stage 1 (Pilot): $200K, Stage 2 (Test): $1.5M, Stage 3 (Scale): $15M.", tags: ["USAID","tiered","development"], related: ["wb-agri","villgro-impact","sisfs"] },
+  { id: "wb-agri", name: "World Bank GAFSP AgriTech", funder: "World Bank / IFC", category: "international", sectors: ["agritech","food-security"], stage: ["seed","early"], grantType: "Grant", amountMin: "Varies", amountMax: "Varies", equity: false, status: "active", url: "https://www.ifc.org/", description: "Global Agriculture and Food Security Program. IFC committed record $71.7B in FY2025 to developing countries. India eligible as LMIC.", tags: ["World-Bank","IFC","agritech"], related: ["usaid-div","nabard-green","aspire","icar"] },
+  { id: "indiaai-stationf", name: "IndiaAI Global Acceleration (Station F)", funder: "MeitY + Station F + HEC Paris", category: "international", sectors: ["ai","deeptech"], stage: ["seed","early"], grantType: "Acceleration", amountMin: "Varies", amountMax: "EU market access", equity: false, status: "active", url: "https://indiaai.gov.in/", description: "10 Indian AI startups per cohort sent to Station F (Paris) and HEC Paris for European market access, mentorship, and investor networking.", tags: ["IndiaAI","Station-F","France"], related: ["indiaai-financing","eic","eu-india","google-ai-first"] },
+  { id: "eu-india", name: "EU-India Joint Research Cooperation", funder: "EU + Govt of India", category: "international", sectors: ["climate","EV","cleantech","deeptech"], stage: ["seed","early"], grantType: "Joint R&D", amountMin: "Varies", amountMax: "Varies", equity: false, status: "active", url: "https://research-and-innovation.ec.europa.eu/", description: "Part of Joint EU-India Strategic Agenda 2030, adopted Jan 27, 2026 at 16th Summit. Focus on EV battery recycling, clean energy, digital/AI cooperation.", tags: ["EU","bilateral","R&D"], related: ["eic","hydrogen","pm-edrive"] },
+
+  // PRIVATE / CORPORATE
+  { id: "villgro-climate", name: "Villgro Climate Tech Incubator", funder: "Villgro + Mercedes-Benz R&D India", category: "private-corporate", sectors: ["climate","cleantech","sustainable-mobility"], stage: ["pre-seed","seed"], grantType: "Grant (no equity)", amountMin: "Varies", amountMax: "Varies", equity: false, status: "active", url: "https://villgro.org/climatetechincubator/", description: "Partnership with Mercedes-Benz R&D India. Supports climate action and sustainable mobility startups. Takes NO equity — funding purely grant-based.", tags: ["Villgro","climate","equity-free","Mercedes-Benz"], related: ["villgro-impact","nabard-green","nabard-carbon","tanseed"] },
+  { id: "villgro-impact", name: "Villgro Impact Incubation", funder: "Villgro", category: "private-corporate", sectors: ["healthcare","agritech","climate","gender-inclusion"], stage: ["pre-seed","seed"], grantType: "Hybrid", amountMin: "Varies", amountMax: "Varies", equity: "varies", status: "active", url: "https://villgro.org/incubation/", description: "India's foremost impact incubator since 2001. 340 enterprises supported, ₹4.28B raised, 5,646 jobs, 20.8M lives impacted. Seed funding as debt, equity, or grants.", tags: ["Villgro","impact","social-enterprise"], related: ["villgro-climate","birac-big","usaid-div"] },
+  { id: "google-india", name: "Google for Startups Accelerator India", funder: "Google", category: "private-corporate", sectors: ["general","tech","ai"], stage: ["seed","early"], grantType: "Equity-free", amountMin: "Credits + mentorship", amountMax: "Credits + mentorship", equity: false, status: "active", url: "https://startup.google.com/programs/accelerator/india/", description: "Equity-free accelerator, Jun–Sep 2026 for Seed to Series A. Google expert mentorship, Cloud credits, TPU access, product & growth workshops. Deadline: Apr 19, 2026.", tags: ["Google","equity-free","acceleration"], related: ["google-ai-first","gcp-startups","msft-founders","nvidia-inception"] },
+  { id: "google-ai-first", name: "Google for Startups Accelerator: AI First India", funder: "Google", category: "private-corporate", sectors: ["ai","deeptech"], stage: ["seed","early"], grantType: "Equity-free", amountMin: "Credits + mentorship", amountMax: "Credits + AI access", equity: false, status: "active", url: "https://startup.google.com/programs/accelerator/ai-first/india/", description: "AI-specific track. AI mentorship from Google researchers, early access to Google AI products, Cloud TPU access. Equity-free.", tags: ["Google","ai","equity-free","TPU"], related: ["google-india","indiaai-compute","meity-ai","nvidia-inception"] },
+  { id: "msft-founders", name: "Microsoft for Startups Founders Hub", funder: "Microsoft", category: "private-corporate", sectors: ["general","tech","ai"], stage: ["ideation","pre-seed","seed","early"], grantType: "Credits", amountMin: "Basic credits", amountMax: "$150K Azure credits", equity: false, status: "active", url: "https://www.microsoft.com/en-us/startups", description: "Azure credits up to $150K, GitHub Enterprise, VS Enterprise, M365 seats, technical mentorship, enterprise intros. No investor backing required for basic path.", tags: ["Microsoft","Azure","equity-free"], related: ["azure-startups","google-india","aws-activate","nvidia-inception"] },
+  { id: "nvidia-inception", name: "NVIDIA Inception Program", funder: "NVIDIA", category: "private-corporate", sectors: ["ai","deeptech","robotics","healthcare-ai"], stage: ["pre-seed","seed","early"], grantType: "Credits", amountMin: "GPU credits", amountMax: "GPU credits + $100K AWS", equity: false, status: "active", url: "https://www.nvidia.com/en-us/startups/", description: "GPU credits, co-marketing, NVIDIA DLI access, preferred hardware pricing. Members get up to $100K in AWS credits via NVIDIA-AWS partnership. Key partner in IndiaAI Mission.", tags: ["NVIDIA","GPU","ai","equity-free"], related: ["indiaai-compute","aws-activate","google-ai-first","meity-ai"] },
+  { id: "climate-challenge", name: "NABARD National Climate Stack Challenge", funder: "NABARD + Gates Foundation + Dalberg", category: "private-corporate", sectors: ["climate","agritech"], stage: ["ideation","pre-seed"], grantType: "Prize", amountMin: "₹5L (3rd)", amountMax: "₹15L (1st)", equity: false, status: "active", url: "https://www.nabard.org/", description: "Innovation challenge launched at Bharat Climate Forum, Jan 2026. Prizes: ₹15L first, ₹10L second, ₹5L third. All funded by NABARD.", tags: ["NABARD","Gates-Foundation","prize"], related: ["nabard-green","nabard-carbon","villgro-climate"] },
+  { id: "deepscale", name: "DeepScale India Accelerator", funder: "DeepScale India", category: "private-corporate", sectors: ["ai","deeptech","robotics","quantum","biotech","spacetech","semiconductors"], stage: ["pre-seed","seed"], grantType: "Equity-free", amountMin: "Varies", amountMax: "Varies", equity: false, status: "active", url: "https://deepscale.in/", description: "Supports early-stage deep-tech innovators across AI, robotics, quantum, biotech, spacetech, and semiconductors.", tags: ["deeptech","acceleration"], related: ["karnataka-deeptech","meity-ai","nvidia-inception","indiaai-compute"] },
+
+  // CLOUD CREDITS
+  { id: "aws-activate", name: "AWS Activate", funder: "Amazon Web Services", category: "cloud-credits", sectors: ["general","tech","ai"], stage: ["ideation","pre-seed","seed","early"], grantType: "Cloud Credits", amountMin: "$1K (self-serve)", amountMax: "$100K (portfolio)", equity: false, status: "active", url: "https://aws.amazon.com/activate/", description: "Multiple tiers: Founders ($1K), Portfolio ($100K via accelerator/VC). DPIIT Startup India beneficiaries can access directly.", tags: ["AWS","cloud-credits","equity-free"], related: ["gcp-startups","azure-startups","nvidia-inception","indiaai-compute"] },
+  { id: "gcp-startups", name: "Google Cloud for Startups", funder: "Google Cloud", category: "cloud-credits", sectors: ["general","tech","ai"], stage: ["pre-seed","seed","early"], grantType: "Cloud Credits", amountMin: "$2K (basic)", amountMax: "$350K (Scale AI)", equity: false, status: "active", url: "https://cloud.google.com/startup", description: "Scale Tier AI: up to $350K over 2 years (Y1: 100% up to $250K, Y2: 20% up to $100K). Regular Scale: up to $200K. Largest cloud credit program.", tags: ["Google","GCP","cloud-credits","ai"], related: ["google-india","aws-activate","azure-startups","indiaai-compute"] },
+  { id: "azure-startups", name: "Microsoft Azure for Startups", funder: "Microsoft", category: "cloud-credits", sectors: ["general","tech","ai"], stage: ["ideation","pre-seed","seed","early"], grantType: "Cloud Credits", amountMin: "Basic credits", amountMax: "$150K", equity: false, status: "active", url: "https://www.microsoft.com/en-us/startups", description: "Part of Microsoft for Startups Founders Hub. Azure credits up to $150K + GitHub Enterprise, VS Enterprise, and M365 seats.", tags: ["Microsoft","Azure","cloud-credits"], related: ["msft-founders","aws-activate","gcp-startups","indiaai-compute"] },
+];
+
+// Entity nodes for graph
+const ENTITIES = [
+  { id: "e-dpiit", name: "DPIIT", type: "entity", grants: ["sisfs","ffs","cgss"] },
+  { id: "e-meity", name: "MeitY", type: "entity", grants: ["genesis","meity-ai","indiaai-financing","indiaai-compute"] },
+  { id: "e-dst", name: "DST", type: "entity", grants: ["prayas"] },
+  { id: "e-birac", name: "BIRAC / DBT", type: "entity", grants: ["birac-big","birac-rdi","birac-pcp","birac-bioai"] },
+  { id: "e-sidbi", name: "SIDBI", type: "entity", grants: ["ffs","aspire"] },
+  { id: "e-niti", name: "NITI Aayog", type: "entity", grants: ["aim"] },
+  { id: "e-nabard", name: "NABARD", type: "entity", grants: ["nabard-green","nabard-carbon","climate-challenge"] },
+  { id: "e-icar", name: "ICAR", type: "entity", grants: ["icar"] },
+  { id: "e-google", name: "Google", type: "entity", grants: ["google-india","google-ai-first","gcp-startups"] },
+  { id: "e-msft", name: "Microsoft", type: "entity", grants: ["msft-founders","azure-startups"] },
+  { id: "e-nvidia", name: "NVIDIA", type: "entity", grants: ["nvidia-inception"] },
+  { id: "e-aws", name: "AWS", type: "entity", grants: ["aws-activate"] },
+  { id: "e-villgro", name: "Villgro", type: "entity", grants: ["villgro-climate","villgro-impact"] },
+  { id: "e-eu", name: "EU / EIC", type: "entity", grants: ["eic","eu-india"] },
+];
+
+// ========== COLOR MAP ==========
+const COLORS = {
+  "central-govt": "#89b4fa",
+  "state-govt": "#fab387",
+  "international": "#cba6f7",
+  "private-corporate": "#f9e2af",
+  "cloud-credits": "#94e2d5",
+  "entity": "#6c7086"
+};
+
+const CATEGORY_LABELS = {
+  "central-govt": "Central Govt",
+  "state-govt": "State Govt",
+  "international": "International",
+  "private-corporate": "Private",
+  "cloud-credits": "Cloud Credits"
+};
+
+// ========== STATE ==========
+let activeFilters = { category: null, stage: null, sector: null };
+let selectedGrant = null;
+
+// ========== INIT FILTERS ==========
+function initFilters() {
+  const catContainer = document.getElementById('category-filters');
+  Object.entries(CATEGORY_LABELS).forEach(([key, label]) => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.textContent = label;
+    btn.dataset.filter = key;
+    btn.dataset.type = 'category';
+    btn.addEventListener('click', () => toggleFilter('category', key, btn));
+    catContainer.appendChild(btn);
+  });
+
+  const stages = ["ideation","pre-seed","seed","early","growth"];
+  const stageContainer = document.getElementById('stage-filters');
+  stages.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.textContent = s.charAt(0).toUpperCase() + s.slice(1);
+    btn.dataset.filter = s;
+    btn.dataset.type = 'stage';
+    btn.addEventListener('click', () => toggleFilter('stage', s, btn));
+    stageContainer.appendChild(btn);
+  });
+
+  const sectors = ["ai","deeptech","climate","cleantech","biotech","agritech","general"];
+  const sectorContainer = document.getElementById('sector-filters');
+  sectors.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.textContent = s === 'ai' ? 'AI' : s.charAt(0).toUpperCase() + s.slice(1);
+    btn.dataset.filter = s;
+    btn.dataset.type = 'sector';
+    btn.addEventListener('click', () => toggleFilter('sector', s, btn));
+    sectorContainer.appendChild(btn);
+  });
+}
+
+function toggleFilter(type, value, btn) {
+  if (activeFilters[type] === value) {
+    activeFilters[type] = null;
+    btn.classList.remove('active');
+  } else {
+    document.querySelectorAll(`.filter-btn[data-type="${type}"]`).forEach(b => b.classList.remove('active'));
+    activeFilters[type] = value;
+    btn.classList.add('active');
+  }
+  renderList();
+  updateGraph();
+}
+
+// ========== FILTER LOGIC ==========
+function getFilteredGrants() {
+  const search = document.getElementById('search').value.toLowerCase();
+  return GRANTS.filter(g => {
+    if (activeFilters.category && g.category !== activeFilters.category) return false;
+    if (activeFilters.stage && !g.stage.includes(activeFilters.stage)) return false;
+    if (activeFilters.sector && !g.sectors.includes(activeFilters.sector)) return false;
+    if (search) {
+      const haystack = `${g.name} ${g.funder} ${g.description} ${g.tags.join(' ')} ${g.sectors.join(' ')}`.toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+// ========== RENDER LIST ==========
+function renderList() {
+  const filtered = getFilteredGrants();
+  const container = document.getElementById('grants-list');
+  container.innerHTML = '';
+
+  filtered.forEach(g => {
+    const item = document.createElement('div');
+    item.className = `grant-item${selectedGrant === g.id ? ' selected' : ''}`;
+    item.innerHTML = `
+      <div class="grant-name">${g.name}</div>
+      <div class="grant-meta">
+        <span class="category-dot" style="background:${COLORS[g.category]}"></span>
+        <span>${g.funder}</span>
+        <span class="grant-amount">${g.amountMax}</span>
+      </div>
+    `;
+    item.addEventListener('click', () => selectGrant(g.id));
+    container.appendChild(item);
+  });
+
+  document.getElementById('result-count').textContent = `${filtered.length} grant${filtered.length !== 1 ? 's' : ''}`;
+}
+
+// ========== DETAIL PANEL ==========
+function selectGrant(id) {
+  const g = GRANTS.find(x => x.id === id);
+  if (!g) return;
+  selectedGrant = id;
+  renderList();
+
+  const relatedGrants = (g.related || []).map(rid => GRANTS.find(x => x.id === rid)).filter(Boolean);
+  const panel = document.getElementById('detail-panel');
+  const content = document.getElementById('detail-content');
+
+  content.innerHTML = `
+    <div class="detail-title">${g.name}</div>
+    <div class="detail-funder">${g.funder}</div>
+    <div class="detail-tags">
+      ${g.tags.map(t => `<span class="detail-tag">${t}</span>`).join('')}
+    </div>
+    <div class="detail-section">
+      <h3>Overview</h3>
+      <div class="detail-description">${g.description}</div>
+    </div>
+    <div class="detail-section">
+      <h3>Funding Details</h3>
+      <div class="detail-grid">
+        <div class="detail-field"><div class="field-label">Min Amount</div><div class="field-value highlight">${g.amountMin}</div></div>
+        <div class="detail-field"><div class="field-label">Max Amount</div><div class="field-value highlight">${g.amountMax}</div></div>
+        <div class="detail-field"><div class="field-label">Grant Type</div><div class="field-value">${g.grantType}</div></div>
+        <div class="detail-field"><div class="field-label">Equity</div><div class="field-value">${g.equity === false ? '✅ No equity' : g.equity === true ? '⚠️ Yes' : '🔄 ' + g.equity}</div></div>
+        <div class="detail-field"><div class="field-label">Stages</div><div class="field-value">${g.stage.join(', ')}</div></div>
+        <div class="detail-field"><div class="field-label">Status</div><div class="field-value" style="color:var(--accent-green)">${g.status}</div></div>
+        <div class="detail-field full"><div class="field-label">Sectors</div><div class="field-value">${g.sectors.join(', ')}</div></div>
+      </div>
+    </div>
+    ${g.url ? `<a class="detail-link" href="${g.url}" target="_blank">Visit Official Website →</a>` : ''}
+    ${relatedGrants.length ? `
+      <div class="detail-section" style="margin-top:24px">
+        <h3>Related Grants</h3>
+        <div class="related-grants">
+          ${relatedGrants.map(r => `<div class="related-grant-link" data-id="${r.id}"><span class="category-dot" style="background:${COLORS[r.category]};margin-right:6px"></span>${r.name}</div>`).join('')}
+        </div>
+      </div>
+    ` : ''}
+  `;
+
+  content.querySelectorAll('.related-grant-link').forEach(el => {
+    el.addEventListener('click', () => selectGrant(el.dataset.id));
+  });
+
+  panel.classList.add('open');
+  highlightNode(id);
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('open');
+  selectedGrant = null;
+  renderList();
+  unhighlightAll();
+}
+
+// ========== D3 GRAPH ==========
+let simulation, svg, link, node, nodeLabel, graphNodes, graphLinks;
+
+function buildGraph() {
+  const filtered = getFilteredGrants();
+  const filteredIds = new Set(filtered.map(g => g.id));
+
+  graphNodes = [
+    ...filtered.map(g => ({ id: g.id, name: g.name, category: g.category, type: 'grant', radius: 7 + Math.min(g.related?.length || 0, 8) })),
+    ...ENTITIES.filter(e => e.grants.some(gid => filteredIds.has(gid))).map(e => ({ id: e.id, name: e.name, category: 'entity', type: 'entity', radius: 12 })),
+  ];
+
+  const nodeIds = new Set(graphNodes.map(n => n.id));
+  graphLinks = [];
+
+  // Entity → grant links
+  ENTITIES.forEach(e => {
+    if (!nodeIds.has(e.id)) return;
+    e.grants.forEach(gid => {
+      if (nodeIds.has(gid)) graphLinks.push({ source: e.id, target: gid, type: 'entity' });
+    });
+  });
+
+  // Grant → grant related links
+  filtered.forEach(g => {
+    (g.related || []).forEach(rid => {
+      if (nodeIds.has(rid) && g.id < rid) {
+        graphLinks.push({ source: g.id, target: rid, type: 'related' });
+      }
+    });
+  });
+
+  return { nodes: graphNodes, links: graphLinks };
+}
+
+function initGraph() {
+  const container = document.querySelector('.main');
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+
+  svg = d3.select('#graph')
+    .attr('width', width)
+    .attr('height', height);
+
+  const g = svg.append('g');
+
+  const zoom = d3.zoom()
+    .scaleExtent([0.2, 4])
+    .on('zoom', (event) => g.attr('transform', event.transform));
+
+  svg.call(zoom);
+
+  const data = buildGraph();
+
+  link = g.append('g')
+    .selectAll('line')
+    .data(data.links)
+    .join('line')
+    .attr('stroke', d => d.type === 'entity' ? '#45475a' : '#313244')
+    .attr('stroke-width', d => d.type === 'entity' ? 1.5 : 0.8)
+    .attr('stroke-opacity', d => d.type === 'entity' ? 0.6 : 0.3);
+
+  node = g.append('g')
+    .selectAll('circle')
+    .data(data.nodes)
+    .join('circle')
+    .attr('r', d => d.radius)
+    .attr('fill', d => COLORS[d.category] || '#6c7086')
+    .attr('stroke', 'none')
+    .attr('cursor', 'pointer')
+    .attr('opacity', 0.85)
+    .on('mouseover', handleMouseOver)
+    .on('mouseout', handleMouseOut)
+    .on('click', (event, d) => {
+      if (d.type === 'grant') selectGrant(d.id);
+    })
+    .call(d3.drag()
+      .on('start', dragStart)
+      .on('drag', dragging)
+      .on('end', dragEnd));
+
+  nodeLabel = g.append('g')
+    .selectAll('text')
+    .data(data.nodes)
+    .join('text')
+    .text(d => d.name.length > 28 ? d.name.slice(0, 26) + '…' : d.name)
+    .attr('font-size', d => d.type === 'entity' ? 11 : 9)
+    .attr('font-weight', d => d.type === 'entity' ? 600 : 400)
+    .attr('fill', d => d.type === 'entity' ? '#cdd6f4' : '#a6adc8')
+    .attr('dx', d => d.radius + 4)
+    .attr('dy', 3)
+    .attr('pointer-events', 'none');
+
+  simulation = d3.forceSimulation(data.nodes)
+    .force('link', d3.forceLink(data.links).id(d => d.id).distance(80))
+    .force('charge', d3.forceManyBody().strength(-200))
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('collision', d3.forceCollide().radius(d => d.radius + 8))
+    .on('tick', ticked);
+
+  // Initial zoom to fit
+  svg.call(zoom.transform, d3.zoomIdentity.translate(width * 0.05, height * 0.05).scale(0.9));
+}
+
+function ticked() {
+  link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+      .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+  node.attr('cx', d => d.x).attr('cy', d => d.y);
+  nodeLabel.attr('x', d => d.x).attr('y', d => d.y);
+}
+
+function dragStart(event, d) { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }
+function dragging(event, d) { d.fx = event.x; d.fy = event.y; }
+function dragEnd(event, d) { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }
+
+function handleMouseOver(event, d) {
+  const tooltip = document.getElementById('tooltip');
+  tooltip.innerHTML = `<div class="tt-name">${d.name}</div><div class="tt-meta">${d.type === 'entity' ? 'Funder / Agency' : CATEGORY_LABELS[d.category] || d.category}</div>`;
+  tooltip.style.left = (event.clientX - document.querySelector('.sidebar').clientWidth + 12) + 'px';
+  tooltip.style.top = (event.clientY - 40) + 'px';
+  tooltip.style.opacity = 1;
+  d3.select(event.target).attr('stroke', '#fff').attr('stroke-width', 2).attr('opacity', 1);
+}
+
+function handleMouseOut(event, d) {
+  document.getElementById('tooltip').style.opacity = 0;
+  d3.select(event.target).attr('stroke', 'none').attr('opacity', 0.85);
+}
+
+function highlightNode(id) {
+  const related = new Set();
+  related.add(id);
+  const g = GRANTS.find(x => x.id === id);
+  if (g && g.related) g.related.forEach(r => related.add(r));
+  ENTITIES.forEach(e => { if (e.grants.includes(id)) { related.add(e.id); e.grants.forEach(gid => related.add(gid)); }});
+
+  node.attr('opacity', d => related.has(d.id) ? 1 : 0.15);
+  nodeLabel.attr('opacity', d => related.has(d.id) ? 1 : 0.1);
+  link.attr('stroke-opacity', d => (related.has(d.source.id) && related.has(d.target.id)) ? 0.8 : 0.05);
+}
+
+function unhighlightAll() {
+  node.attr('opacity', 0.85);
+  nodeLabel.attr('opacity', 1);
+  link.attr('stroke-opacity', d => d.type === 'entity' ? 0.6 : 0.3);
+}
+
+function updateGraph() {
+  // Rebuild graph with filtered data
+  const container = document.querySelector('.main');
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  const data = buildGraph();
+
+  link = link.data(data.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
+  link.exit().remove();
+  link = link.enter().append('line')
+    .attr('stroke', d => d.type === 'entity' ? '#45475a' : '#313244')
+    .attr('stroke-width', d => d.type === 'entity' ? 1.5 : 0.8)
+    .attr('stroke-opacity', d => d.type === 'entity' ? 0.6 : 0.3)
+    .merge(link);
+
+  node = node.data(data.nodes, d => d.id);
+  node.exit().remove();
+  node = node.enter().append('circle')
+    .attr('r', d => d.radius)
+    .attr('fill', d => COLORS[d.category] || '#6c7086')
+    .attr('cursor', 'pointer')
+    .attr('opacity', 0.85)
+    .on('mouseover', handleMouseOver)
+    .on('mouseout', handleMouseOut)
+    .on('click', (event, d) => { if (d.type === 'grant') selectGrant(d.id); })
+    .call(d3.drag().on('start', dragStart).on('drag', dragging).on('end', dragEnd))
+    .merge(node);
+
+  nodeLabel = nodeLabel.data(data.nodes, d => d.id);
+  nodeLabel.exit().remove();
+  nodeLabel = nodeLabel.enter().append('text')
+    .text(d => d.name.length > 28 ? d.name.slice(0, 26) + '…' : d.name)
+    .attr('font-size', d => d.type === 'entity' ? 11 : 9)
+    .attr('font-weight', d => d.type === 'entity' ? 600 : 400)
+    .attr('fill', d => d.type === 'entity' ? '#cdd6f4' : '#a6adc8')
+    .attr('dx', d => d.radius + 4)
+    .attr('dy', 3)
+    .attr('pointer-events', 'none')
+    .merge(nodeLabel);
+
+  simulation.nodes(data.nodes);
+  simulation.force('link').links(data.links);
+  simulation.alpha(0.5).restart();
+}
+
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded', () => {
+  initFilters();
+  renderList();
+  initGraph();
+
+  document.getElementById('search').addEventListener('input', () => { renderList(); updateGraph(); });
+  document.getElementById('detail-close').addEventListener('click', closeDetail);
+
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // Future: toggle between graph and card view
+    });
+  });
+});
+
+window.addEventListener('resize', () => {
+  const container = document.querySelector('.main');
+  svg.attr('width', container.clientWidth).attr('height', container.clientHeight);
+});
+</script>
+</body>
+</html>
