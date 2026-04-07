@@ -1,4 +1,8 @@
-# India Startup Grants Knowledge Base
+# 🏃 India Startup Grants Knowledge Base
+
+*A [Startup Speedrun](https://startupspeedrun.com) open-source resource*
+
+---
 
 An open-source, community-maintained knowledge base of **38+ active grants, funds, and non-dilutive financing** available to Indian startups and companies.
 
