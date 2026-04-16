@@ -1,0 +1,163 @@
+name: "\U0001F4CB Submit a Grant / Accelerator"
+description: "Submit a new grant, fund, or accelerator program to be added to the database"
+title: "[Grant Submission] "
+labels: ["grant-submission", "needs-verification"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Submit a Grant or Accelerator
+        Thanks for contributing! Please fill in as much detail as possible. A community reviewer will verify the information before it gets added.
+
+        **Note:** Only active or recurring grants will be accepted. Closed/expired grants will not be added.
+
+  - type: input
+    id: grant_name
+    attributes:
+      label: Grant / Program Name
+      placeholder: "e.g., Karnataka Elevate Programme"
+    validations:
+      required: true
+
+  - type: input
+    id: funder
+    attributes:
+      label: Funder / Administering Organization
+      placeholder: "e.g., Government of Karnataka"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Central Government (India)
+        - State Government (India)
+        - International / Multilateral
+        - Private Foundation / Corporate
+        - Cloud Credits / In-kind
+    validations:
+      required: true
+
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Target Stage(s)
+      multiple: true
+      options:
+        - Ideation / Pre-prototype
+        - Pre-seed
+        - Seed
+        - Early (Seed to Series A)
+        - Growth (Series A+)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: sectors
+    attributes:
+      label: Target Sector(s)
+      multiple: true
+      options:
+        - AI / Deep Tech
+        - Climate / Clean Energy
+        - Biotech / Healthcare
+        - Agritech / Food
+        - Fintech
+        - EdTech
+        - SaaS / Software
+        - Hardware / Semiconductors
+        - Social Impact
+        - Sector Agnostic
+    validations:
+      required: true
+
+  - type: input
+    id: amount
+    attributes:
+      label: Funding Amount (range with currency)
+      placeholder: "e.g., Up to ₹50 Lakh or $10K–$100K"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: grant_type
+    attributes:
+      label: Funding Type
+      options:
+        - Grant (non-refundable)
+        - Equity-free (credits, acceleration)
+        - Debt / Loan
+        - Hybrid (grant + debt or grant + equity)
+        - Equity investment
+        - Cloud credits / In-kind
+        - Prize money
+    validations:
+      required: true
+
+  - type: dropdown
+    id: equity
+    attributes:
+      label: Does it take equity?
+      options:
+        - "No"
+        - "Yes"
+        - "Optional"
+    validations:
+      required: true
+
+  - type: input
+    id: deadline
+    attributes:
+      label: Application Deadline
+      placeholder: "e.g., Rolling, April 30 2026, Annual cohorts"
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: Official Website URL
+      placeholder: "https://..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: "Brief overview of the grant — what it funds, key benefits, any notable stats"
+      placeholder: "This program provides..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: eligibility
+    attributes:
+      label: Eligibility Criteria
+      description: "Who can apply? Any geographic, sector, or stage restrictions?"
+      placeholder: "Open to DPIIT-registered startups in India..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: source
+    attributes:
+      label: Source / Evidence
+      description: "How do you know this grant is active? Link to an official announcement, press release, or scheme document."
+      placeholder: "Official announcement: https://..."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: "I have verified this grant is currently active (not expired or closed)"
+          required: true
+        - label: "The URL I provided links to an official source (not a blog or aggregator)"
+          required: true
+        - label: "I have no financial conflict of interest in submitting this grant"
+          required: true

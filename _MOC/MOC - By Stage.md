@@ -55,3 +55,8 @@ tags: [MOC, stage]
 - [[NABARD Green Impact Fund]] — ₹1,000 crore for climate projects
 - [[NABARD Carbon Fund]] — ₹300 crore for carbon tech
 - [[National Green Hydrogen Mission]] — production incentives
+
+---
+
+> [!WARNING] Disclaimer
+> This is a community-maintained project. Information may be inaccurate, outdated, or incomplete. Always verify with the official source before applying. Not financial or legal advice.

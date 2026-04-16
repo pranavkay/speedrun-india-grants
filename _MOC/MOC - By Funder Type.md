@@ -61,3 +61,8 @@ tags: [MOC, funder-type]
 - [[Google Cloud for Startups]]
 - [[Microsoft Azure for Startups]]
 - [[IndiaAI Compute Credits]]
+
+---
+
+> [!WARNING] Disclaimer
+> This is a community-maintained project. Information may be inaccurate, outdated, or incomplete. Always verify with the official source before applying. Not financial or legal advice.

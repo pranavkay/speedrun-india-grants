@@ -1,0 +1,34 @@
+name: "\u26A0\uFE0F Report Outdated or Incorrect Info"
+description: "Flag a grant that has incorrect information, expired, or needs updating"
+title: "[Update Needed] "
+labels: ["outdated-info", "needs-verification"]
+body:
+  - type: input
+    id: grant_name
+    attributes:
+      label: Which grant has incorrect info?
+      placeholder: "e.g., Karnataka Elevate Programme"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: What's wrong?
+      options:
+        - Grant has expired / is no longer active
+        - Funding amount has changed
+        - Deadline is incorrect
+        - Eligibility criteria have changed
+        - URL is broken or changed
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: What's the correct information?
+      description: "Please include a source link if possible"
+    validations:
+      required: true

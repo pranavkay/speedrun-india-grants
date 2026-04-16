@@ -53,3 +53,7 @@ tags: []
 
 ## Notes
 
+
+> [!WARNING] Disclaimer
+> This information is community-maintained and may be inaccurate or outdated. Always verify on the official website before applying. This is not financial or legal advice.
+

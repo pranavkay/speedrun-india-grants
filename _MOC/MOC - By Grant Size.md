@@ -36,3 +36,8 @@ tags: [MOC, grant-size]
 - [[NABARD Carbon Fund]] — ₹300 crore corpus
 - [[Maharashtra MahaFund]] — ₹500 crore corpus
 - [[National Green Hydrogen Mission]] — incentives for 450K TPA production
+
+---
+
+> [!WARNING] Disclaimer
+> This is a community-maintained project. Information may be inaccurate, outdated, or incomplete. Always verify with the official source before applying. Not financial or legal advice.

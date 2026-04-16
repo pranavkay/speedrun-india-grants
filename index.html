@@ -34,10 +34,12 @@
     color: var(--text-primary);
     overflow: hidden;
     height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 
   /* Layout */
-  .app { display: flex; height: 100vh; }
+  .app { display: flex; flex: 1; overflow: hidden; }
 
   .sidebar {
     width: 360px;
@@ -449,14 +451,316 @@
     .main { height: 55vh; }
     .detail-panel { width: 100%; }
   }
+
+  /* Disclaimer banner */
+  .disclaimer-banner {
+    background: #2a2318;
+    border-bottom: 2px solid #b8860b;
+    padding: 8px 48px 8px 16px;
+    font-size: 12px;
+    color: #f9e2af;
+    position: relative;
+    z-index: 100;
+    line-height: 1.5;
+  }
+  .disclaimer-banner .dismiss-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #f9e2af;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0.7;
+    line-height: 1;
+  }
+  .disclaimer-banner .dismiss-btn:hover { opacity: 1; }
+
+  /* Detail panel disclaimer */
+  .detail-disclaimer {
+    margin-top: 20px;
+    padding: 10px 14px;
+    background: #2a2318;
+    border: 1px solid #b8860b44;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #f9e2af;
+    line-height: 1.5;
+  }
+
+  /* Submit grant button in sidebar header */
+  .submit-grant-link {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--accent-purple);
+    border: 1px solid var(--accent-purple);
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s;
+    opacity: 0.8;
+  }
+  .submit-grant-link:hover { background: rgba(203,166,247,0.12); opacity: 1; }
+
+  /* Grant matcher modal */
+  .matcher-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    justify-content: center;
+    align-items: center;
+  }
+  .matcher-overlay.open { display: flex; }
+  .matcher-modal {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    width: 560px;
+    max-width: 95vw;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+  }
+  .matcher-modal::-webkit-scrollbar { width: 6px; }
+  .matcher-modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .matcher-modal h2 {
+    font-size: 18px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .matcher-modal .matcher-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+  }
+  .matcher-modal .matcher-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: none; border: none;
+    color: var(--text-muted);
+    font-size: 22px;
+    cursor: pointer;
+  }
+  .matcher-modal .matcher-close:hover { color: var(--text-primary); }
+  .matcher-modal label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    margin-top: 14px;
+  }
+  .matcher-modal textarea {
+    width: 100%;
+    min-height: 70px;
+    padding: 10px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+  }
+  .matcher-modal textarea:focus { border-color: var(--accent-purple); }
+  .matcher-modal select {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 13px;
+    outline: none;
+  }
+  .matcher-modal select:focus { border-color: var(--accent-purple); }
+  .matcher-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .matcher-checkboxes label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .matcher-checkboxes input[type="checkbox"] {
+    accent-color: var(--accent-purple);
+  }
+  .matcher-equity-row {
+    margin-top: 14px;
+  }
+  .matcher-equity-row label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    cursor: pointer;
+  }
+  .matcher-btn {
+    margin-top: 18px;
+    width: 100%;
+    padding: 10px;
+    background: var(--accent-purple);
+    color: var(--bg-primary);
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .matcher-btn:hover { opacity: 0.85; }
+  .matcher-results-disclaimer {
+    margin-top: 18px;
+    padding: 8px 12px;
+    background: #2a2318;
+    border: 1px solid #b8860b44;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #f9e2af;
+    line-height: 1.4;
+  }
+  .matcher-result {
+    margin-top: 10px;
+    padding: 12px;
+    background: var(--bg-card);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .matcher-result:hover { background: var(--bg-card-hover); }
+  .matcher-result-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .matcher-result-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .matcher-score-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-primary);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .matcher-score-bar {
+    height: 100%;
+    background: var(--accent-green);
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .matcher-result-explain {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* Feedback widget */
+  .feedback-fab {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    padding: 8px 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 15;
+    transition: all 0.2s;
+  }
+  .feedback-fab:hover { border-color: var(--accent-purple); color: var(--text-primary); }
+  .feedback-popup {
+    display: none;
+    position: absolute;
+    bottom: 56px;
+    right: 20px;
+    width: 320px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    z-index: 15;
+    box-shadow: 0 8px 24px var(--shadow);
+  }
+  .feedback-popup.open { display: block; }
+  .feedback-popup h4 {
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+  }
+  .feedback-popup select,
+  .feedback-popup textarea {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    margin-bottom: 10px;
+  }
+  .feedback-popup textarea { min-height: 80px; resize: vertical; }
+  .feedback-popup select:focus,
+  .feedback-popup textarea:focus { border-color: var(--accent-purple); }
+  .feedback-submit-btn {
+    width: 100%;
+    padding: 8px;
+    background: var(--accent-purple);
+    color: var(--bg-primary);
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .feedback-submit-btn:hover { opacity: 0.85; }
+
+  /* Find My Grants button in view-toggle */
+  .find-grants-btn {
+    padding: 6px 14px;
+    font-size: 12px;
+    border: 1px solid var(--accent-green);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--accent-green);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: 4px;
+  }
+  .find-grants-btn:hover { background: rgba(166,227,161,0.12); }
 </style>
 </head>
 <body>
+<div class="disclaimer-banner" id="disclaimer-banner">
+  &#9888;&#65039; Community-maintained project. Grant information may be inaccurate, outdated, or incomplete even after review. Always verify directly with the official source before applying. This is not financial or legal advice.
+  <button class="dismiss-btn" id="dismiss-banner">&times;</button>
+</div>
 <div class="app">
   <div class="sidebar">
     <div class="sidebar-header">
       <h1>India Startup Grants</h1>
       <div class="subtitle">38+ active grants &middot; Interlinked knowledge base &middot; April 2026</div>
+      <a class="submit-grant-link" href="https://github.com/pranavkay/speedrun-india-grants/issues/new?template=submit-grant.yml" target="_blank">&#xFF0B; Submit a Grant</a>
     </div>
     <div class="search-box">
       <input type="text" id="search" placeholder="Search grants, funders, sectors..." autocomplete="off">
@@ -472,13 +776,14 @@
     <div class="grants-list" id="grants-list"></div>
     <div class="stat-bar">
       <span id="result-count">38 grants</span>
-      <span>Open source &middot; GitHub</span>
+      <span>Community-run &middot; Info may be inaccurate &middot; Verify before applying</span>
     </div>
   </div>
   <div class="main">
     <div class="view-toggle">
       <button class="view-btn active" data-view="graph">Graph</button>
       <button class="view-btn" data-view="list">Cards</button>
+      <button class="find-grants-btn" id="open-matcher">Find My Grants</button>
     </div>
     <svg id="graph"></svg>
     <div class="graph-tooltip" id="tooltip"></div>
@@ -491,10 +796,53 @@
       <div class="legend-item"><div class="legend-dot" style="background:#94e2d5"></div> Cloud Credits</div>
       <div class="legend-item"><div class="legend-dot" style="background:#6c7086"></div> Entity / Funder</div>
     </div>
+    <button class="feedback-fab" id="feedback-fab">Feedback</button>
+    <div class="feedback-popup" id="feedback-popup">
+      <h4>Send Feedback</h4>
+      <select id="feedback-type">
+        <option value="feature">Feature request</option>
+        <option value="incorrect">Report incorrect info</option>
+        <option value="submit">Submit a grant</option>
+        <option value="general">General feedback</option>
+      </select>
+      <textarea id="feedback-message" placeholder="Your message..."></textarea>
+      <button class="feedback-submit-btn" id="feedback-submit">Submit</button>
+    </div>
     <div class="detail-panel" id="detail-panel">
       <button class="detail-close" id="detail-close">&times;</button>
       <div id="detail-content"></div>
     </div>
+  </div>
+</div>
+
+<div class="matcher-overlay" id="matcher-overlay">
+  <div class="matcher-modal">
+    <button class="matcher-close" id="matcher-close">&times;</button>
+    <h2>Find My Grants</h2>
+    <div class="matcher-subtitle">Answer a few questions to find grants that match your startup.</div>
+    <label for="matcher-desc">Describe your startup in 2-3 sentences (what you're building, your sector, your stage)</label>
+    <textarea id="matcher-desc" placeholder="e.g. We're building an AI-powered crop monitoring platform for smallholder farmers in India. We're at the seed stage looking for non-dilutive funding."></textarea>
+    <label for="matcher-stage">Stage</label>
+    <select id="matcher-stage">
+      <option value="ideation">Ideation</option>
+      <option value="pre-seed">Pre-seed</option>
+      <option value="seed" selected>Seed</option>
+      <option value="early">Early</option>
+      <option value="growth">Growth</option>
+    </select>
+    <label>Sectors (select all that apply)</label>
+    <div class="matcher-checkboxes" id="matcher-sectors">
+      <label><input type="checkbox" value="ai"> AI/Deep Tech</label>
+      <label><input type="checkbox" value="climate"> Climate/Clean Energy</label>
+      <label><input type="checkbox" value="biotech"> Biotech/Healthcare</label>
+      <label><input type="checkbox" value="agritech"> Agritech</label>
+      <label><input type="checkbox" value="general"> General/Other</label>
+    </div>
+    <div class="matcher-equity-row">
+      <label><input type="checkbox" id="matcher-nondilutive"> Only show non-dilutive (no equity) grants</label>
+    </div>
+    <button class="matcher-btn" id="matcher-run">Find Matching Grants</button>
+    <div id="matcher-results"></div>
   </div>
 </div>
 
@@ -727,6 +1075,7 @@ function selectGrant(id) {
         </div>
       </div>
     ` : ''}
+    <div class="detail-disclaimer">&#9888;&#65039; Disclaimer: This information is community-maintained and may be inaccurate or outdated. Always verify details on the official website before applying. Last verified: ${g.last_verified || 'Not yet verified'}.</div>
   `;
 
   content.querySelectorAll('.related-grant-link').forEach(el => {
@@ -957,6 +1306,148 @@ document.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('resize', () => {
   const container = document.querySelector('.main');
   svg.attr('width', container.clientWidth).attr('height', container.clientHeight);
+});
+
+// ========== FEATURE 1A: DISMISS BANNER ==========
+let bannerDismissed = false;
+document.getElementById('dismiss-banner').addEventListener('click', () => {
+  bannerDismissed = true;
+  document.getElementById('disclaimer-banner').style.display = 'none';
+});
+
+// ========== FEATURE 2: GRANT MATCHER ==========
+document.getElementById('open-matcher').addEventListener('click', () => {
+  document.getElementById('matcher-overlay').classList.add('open');
+});
+document.getElementById('matcher-close').addEventListener('click', () => {
+  document.getElementById('matcher-overlay').classList.remove('open');
+});
+document.getElementById('matcher-overlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) document.getElementById('matcher-overlay').classList.remove('open');
+});
+
+const STOPWORDS = new Set(['a','an','the','and','or','but','in','on','at','to','for','of','with','by','is','are','was','were','be','been','being','we','our','my','i','you','your','that','this','it','its','from','as','have','has','had','do','does','did','will','would','can','could','should','not','no','so','if','about','up','out','just','also','very','more','most','into','over','after','before','between','under','through','during','each','some','any']);
+
+document.getElementById('matcher-run').addEventListener('click', () => {
+  const desc = document.getElementById('matcher-desc').value.toLowerCase();
+  const stage = document.getElementById('matcher-stage').value;
+  const selectedSectors = Array.from(document.querySelectorAll('#matcher-sectors input:checked')).map(cb => cb.value);
+  const nonDilutive = document.getElementById('matcher-nondilutive').checked;
+
+  // Extract keywords from description
+  const keywords = desc.split(/\W+/).filter(w => w.length > 2 && !STOPWORDS.has(w));
+
+  const scored = GRANTS.map(g => {
+    let score = 0;
+    const explanations = [];
+
+    // Stage match
+    if (g.stage.includes(stage)) {
+      score += 30;
+      explanations.push('Stage match');
+    }
+
+    // Sector match
+    const sectorMap = {
+      'ai': ['ai','deeptech','tech','electronics','quantum','robotics','semiconductors'],
+      'climate': ['climate','cleantech','energy','hydrogen','EV','sustainable-mobility','carbon'],
+      'biotech': ['biotech','healthcare','healthcare-ai','biomanufacturing'],
+      'agritech': ['agritech','food-tech','food-security','rural'],
+      'general': ['general']
+    };
+    let sectorMatches = 0;
+    selectedSectors.forEach(sel => {
+      const mapped = sectorMap[sel] || [sel];
+      if (mapped.some(m => g.sectors.includes(m))) {
+        sectorMatches++;
+      }
+    });
+    if (sectorMatches > 0) {
+      score += 25 * sectorMatches;
+      explanations.push(sectorMatches + ' sector match' + (sectorMatches > 1 ? 'es' : ''));
+    }
+
+    // Text match
+    const haystack = `${g.name} ${g.description} ${g.tags.join(' ')}`.toLowerCase();
+    let textHits = 0;
+    keywords.forEach(kw => {
+      if (haystack.includes(kw)) textHits++;
+    });
+    if (textHits > 0) {
+      score += 15 * textHits;
+      explanations.push(textHits + ' keyword match' + (textHits > 1 ? 'es' : ''));
+    }
+
+    // Non-dilutive bonus
+    if (nonDilutive && g.equity === false) {
+      score += 20;
+      explanations.push('Non-dilutive');
+    }
+
+    return { grant: g, score, explanations };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  const top10 = scored.filter(s => s.score > 0).slice(0, 10);
+  const maxScore = top10.length > 0 ? top10[0].score : 1;
+
+  const resultsDiv = document.getElementById('matcher-results');
+  if (top10.length === 0) {
+    resultsDiv.innerHTML = '<div class="matcher-results-disclaimer">No matching grants found. Try broadening your sectors or description.</div>';
+    return;
+  }
+
+  resultsDiv.innerHTML = `
+    <div class="matcher-results-disclaimer">These matches are based on keyword scoring, not AI analysis. Always review each grant's full eligibility criteria.</div>
+    ${top10.map(r => `
+      <div class="matcher-result" data-grantid="${r.grant.id}">
+        <div class="matcher-result-name">${r.grant.name}</div>
+        <div class="matcher-result-meta">${r.grant.funder} &middot; ${r.grant.amountMax} &middot; Score: ${r.score}</div>
+        <div class="matcher-score-bar-bg"><div class="matcher-score-bar" style="width:${Math.round((r.score / maxScore) * 100)}%"></div></div>
+        <div class="matcher-result-explain">${r.explanations.join(' &middot; ')}</div>
+      </div>
+    `).join('')}
+  `;
+
+  resultsDiv.querySelectorAll('.matcher-result').forEach(el => {
+    el.addEventListener('click', () => {
+      document.getElementById('matcher-overlay').classList.remove('open');
+      selectGrant(el.dataset.grantid);
+    });
+  });
+});
+
+// ========== FEATURE 3: FEEDBACK WIDGET ==========
+document.getElementById('feedback-fab').addEventListener('click', () => {
+  document.getElementById('feedback-popup').classList.toggle('open');
+});
+
+document.getElementById('feedback-submit').addEventListener('click', () => {
+  const type = document.getElementById('feedback-type').value;
+  const message = document.getElementById('feedback-message').value;
+  const baseUrl = 'https://github.com/pranavkay/speedrun-india-grants/issues/new';
+
+  if (type === 'submit') {
+    window.open(baseUrl + '?template=submit-grant.yml', '_blank');
+  } else if (type === 'incorrect') {
+    window.open(baseUrl + '?template=report-outdated-info.yml', '_blank');
+  } else {
+    const title = encodeURIComponent(type === 'feature' ? 'Feature request: ' + message.slice(0, 60) : 'Feedback: ' + message.slice(0, 60));
+    const body = encodeURIComponent(message);
+    window.open(baseUrl + '?title=' + title + '&body=' + body, '_blank');
+  }
+
+  document.getElementById('feedback-message').value = '';
+  document.getElementById('feedback-popup').classList.remove('open');
+});
+
+// Close feedback popup when clicking outside
+document.addEventListener('click', (e) => {
+  const popup = document.getElementById('feedback-popup');
+  const fab = document.getElementById('feedback-fab');
+  if (popup.classList.contains('open') && !popup.contains(e.target) && e.target !== fab) {
+    popup.classList.remove('open');
+  }
 });
 </script>
 </body>

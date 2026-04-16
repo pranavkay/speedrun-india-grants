@@ -43,5 +43,12 @@ Browse by tag: `#ai` `#climate` `#deeptech` `#cleantech` `#agritech` `#biotech` 
 
 ---
 
+---
+
+> [!WARNING] Disclaimer
+> This is a **community-maintained** open source project. Grant information may be **inaccurate, outdated, or incomplete** even after review and verification. Always verify details directly on the official funder's website before applying. This project does not constitute financial, legal, or investment advice. See our [GitHub repo](https://github.com/pranavkay/speedrun-india-grants) to report issues or contribute.
+
+---
+
 *Last updated: April 2026*
 *Research methodology: Iterative deep-web research with source verification*
