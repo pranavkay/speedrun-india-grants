@@ -1,0 +1,49 @@
+name: "\U0001F4A1 Feature Request"
+description: "Suggest a new feature, view, or improvement to the site, vault, or contribution flow"
+title: "[Feature] "
+labels: ["feature-request", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request
+        Thanks for the suggestion! Please give us enough context to evaluate it.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      placeholder: "I'm a founder trying to ... and currently I have to ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      placeholder: "Add a button that ..., or a new view that ..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Site (index.html)
+        - Vault content / structure
+        - Issue templates / contribution flow
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered (optional)
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context, mockups, links (optional)

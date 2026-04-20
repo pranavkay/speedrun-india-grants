@@ -4,6 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>India Startup Grants Knowledge Base | Powered by Startup Speedrun</title>
+<script>
+  (function(){
+    var s = localStorage.getItem('theme');
+    var t = s || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<!-- GoatCounter pageview tracking. -->
+<script>
+  (function(){
+    var code = 'speedrun-india-grants';
+    if (!code || code === 'YOUR-CODE') return;
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = '//gc.zgo.at/count.js';
+    s.setAttribute('data-goatcounter', 'https://' + code + '.goatcounter.com/count');
+    document.head.appendChild(s);
+  })();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <style>
   :root {
@@ -24,6 +43,26 @@
     --accent-red: #f38ba8;
     --border: #45475a;
     --shadow: rgba(0,0,0,0.4);
+  }
+
+  :root[data-theme="light"] {
+    --bg-primary: #eff1f5;
+    --bg-secondary: #e6e9ef;
+    --bg-card: #dce0e8;
+    --bg-card-hover: #ccd0da;
+    --text-primary: #4c4f69;
+    --text-secondary: #5c5f77;
+    --text-muted: #8c8fa1;
+    --accent-blue: #1e66f5;
+    --accent-green: #40a02b;
+    --accent-orange: #fe640b;
+    --accent-purple: #8839ef;
+    --accent-yellow: #df8e1d;
+    --accent-cyan: #179299;
+    --accent-pink: #ea76cb;
+    --accent-red: #d20f39;
+    --border: #bcc0cc;
+    --shadow: rgba(0,0,0,0.1);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -393,6 +432,25 @@
     flex-shrink: 0;
   }
 
+  .legend-dot-central       { background: var(--accent-blue); }
+  .legend-dot-state         { background: var(--accent-orange); }
+  .legend-dot-international { background: var(--accent-purple); }
+  .legend-dot-private       { background: var(--accent-yellow); }
+  .legend-dot-cloud         { background: var(--accent-cyan); }
+  .legend-dot-entity        { background: var(--text-muted); }
+
+  .legend-counter {
+    margin: 0 0 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .legend-counter-row { font-variant-numeric: tabular-nums; }
+
   /* View toggle */
   .view-toggle {
     position: absolute;
@@ -504,6 +562,27 @@
     opacity: 0.8;
   }
   .submit-grant-link:hover { background: rgba(203,166,247,0.12); opacity: 1; }
+  .submit-grant-link + .submit-grant-link { margin-left: 6px; }
+
+  /* Theme toggle */
+  .theme-toggle {
+    display: inline-block;
+    margin-top: 8px;
+    margin-left: 6px;
+    padding: 3px 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s, border-color 0.2s;
+    vertical-align: middle;
+  }
+  .theme-toggle:hover { opacity: 1; border-color: var(--accent-purple); }
+  :root[data-theme="dark"]  .theme-icon-dark  { display: none; }
+  :root[data-theme="light"] .theme-icon-light { display: none; }
 
   /* Grant matcher modal */
   .matcher-overlay {
@@ -761,6 +840,8 @@
       <h1>Speedrun India Startup Grants</h1>
       <div class="subtitle">38+ active grants &middot; Interlinked knowledge base &middot; April 2026</div>
       <a class="submit-grant-link" href="https://github.com/pranavkay/speedrun-india-grants/issues/new?template=submit-grant.yml" target="_blank">&#xFF0B; Submit a Grant</a>
+      <a class="submit-grant-link" href="https://github.com/pranavkay/speedrun-india-grants/issues/new?template=feature-request.yml" target="_blank">&#x1F4A1; Request a Feature</a>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle light/dark theme" title="Toggle light/dark theme"><span class="theme-icon-dark">&#x1F319;</span><span class="theme-icon-light">&#x2600;&#xFE0F;</span></button>
     </div>
     <div class="search-box">
       <input type="text" id="search" placeholder="Search grants, funders, sectors..." autocomplete="off">
@@ -789,12 +870,16 @@
     <div class="graph-tooltip" id="tooltip"></div>
     <div class="graph-legend">
       <h4>Legend</h4>
-      <div class="legend-item"><div class="legend-dot" style="background:#89b4fa"></div> Central Govt</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#fab387"></div> State Govt</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#cba6f7"></div> International</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#f9e2af"></div> Private / Corporate</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#94e2d5"></div> Cloud Credits</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#6c7086"></div> Entity / Funder</div>
+      <div class="legend-counter" id="legend-counter" aria-live="polite">
+        <span class="legend-counter-row" id="counter-visits">&#x1F441; &mdash; visits</span>
+        <span class="legend-counter-row" id="counter-unique">&#x1F464; &mdash; unique</span>
+      </div>
+      <div class="legend-item"><div class="legend-dot legend-dot-central"></div> Central Govt</div>
+      <div class="legend-item"><div class="legend-dot legend-dot-state"></div> State Govt</div>
+      <div class="legend-item"><div class="legend-dot legend-dot-international"></div> International</div>
+      <div class="legend-item"><div class="legend-dot legend-dot-private"></div> Private / Corporate</div>
+      <div class="legend-item"><div class="legend-dot legend-dot-cloud"></div> Cloud Credits</div>
+      <div class="legend-item"><div class="legend-dot legend-dot-entity"></div> Entity / Funder</div>
     </div>
     <button class="feedback-fab" id="feedback-fab">Feedback</button>
     <div class="feedback-popup" id="feedback-popup">
@@ -922,14 +1007,26 @@ const ENTITIES = [
 ];
 
 // ========== COLOR MAP ==========
-const COLORS = {
-  "central-govt": "#89b4fa",
-  "state-govt": "#fab387",
-  "international": "#cba6f7",
-  "private-corporate": "#f9e2af",
-  "cloud-credits": "#94e2d5",
-  "entity": "#6c7086"
+const COLOR_VARS = {
+  "central-govt": "--accent-blue",
+  "state-govt": "--accent-orange",
+  "international": "--accent-purple",
+  "private-corporate": "--accent-yellow",
+  "cloud-credits": "--accent-cyan",
+  "entity": "--text-muted"
 };
+function readColors() {
+  const cs = getComputedStyle(document.documentElement);
+  const out = {};
+  for (const k in COLOR_VARS) out[k] = cs.getPropertyValue(COLOR_VARS[k]).trim();
+  return out;
+}
+let COLORS = readColors();
+function recolorGraph() {
+  COLORS = readColors();
+  const fallback = COLORS['entity'] || '#6c7086';
+  d3.selectAll('#graph circle').attr('fill', function(d){ return d && d.category ? (COLORS[d.category] || fallback) : this.getAttribute('fill'); });
+}
 
 const CATEGORY_LABELS = {
   "central-govt": "Central Govt",
@@ -1431,8 +1528,12 @@ document.getElementById('feedback-submit').addEventListener('click', () => {
     window.open(baseUrl + '?template=submit-grant.yml', '_blank');
   } else if (type === 'incorrect') {
     window.open(baseUrl + '?template=report-outdated-info.yml', '_blank');
+  } else if (type === 'feature') {
+    const title = encodeURIComponent('[Feature] ' + message.slice(0, 60));
+    const body = encodeURIComponent(message);
+    window.open(baseUrl + '?template=feature-request.yml&title=' + title + '&body=' + body, '_blank');
   } else {
-    const title = encodeURIComponent(type === 'feature' ? 'Feature request: ' + message.slice(0, 60) : 'Feedback: ' + message.slice(0, 60));
+    const title = encodeURIComponent('Feedback: ' + message.slice(0, 60));
     const body = encodeURIComponent(message);
     window.open(baseUrl + '?title=' + title + '&body=' + body, '_blank');
   }
@@ -1449,6 +1550,28 @@ document.addEventListener('click', (e) => {
     popup.classList.remove('open');
   }
 });
+
+// ========== THEME TOGGLE ==========
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('theme', next);
+  if (typeof recolorGraph === 'function') recolorGraph();
+});
+
+// ========== VISITOR COUNTER (GoatCounter) ==========
+(async function loadCounter(){
+  const code = 'speedrun-india-grants';
+  if (!code || code === 'YOUR-CODE') return;
+  try {
+    const r = await fetch('https://' + code + '.goatcounter.com/counter/TOTAL.json');
+    if (!r.ok) return;
+    const d = await r.json();
+    const fmt = n => Number(n).toLocaleString('en-IN');
+    document.getElementById('counter-visits').textContent = '\u{1F441} ' + fmt(d.count) + ' visits';
+    document.getElementById('counter-unique').textContent = '\u{1F464} ' + fmt(d.count_unique) + ' unique';
+  } catch (_) { /* swallow — vanity, not critical */ }
+})();
 </script>
 </body>
 </html>

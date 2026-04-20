@@ -33,6 +33,8 @@ Full-text search across all grants with filters for category, stage, and sector.
 ### Community Contributions
 Submit new grants via GitHub Issues with structured templates. Community reviewers verify submissions using a standardized checklist before they're added to the database.
 
+Have an idea? [Open a feature request](https://github.com/pranavkay/speedrun-india-grants/issues/new?template=feature-request.yml).
+
 ## How to Use
 
 ### Option 1: Interactive Website
